@@ -12,15 +12,25 @@ export default function Home() {
 
     useEffect(() => {
         API.get('/companies')
-            .then(res => setCompanies(res.data.data || res.data))
-            .catch(err => console.error("Gagal memuat data:", err));
+            .then(res => {
+                // Pastikan selalu menyimpannya sebagai array untuk mencegah error .filter
+                const data = res.data.data || res.data;
+                setCompanies(Array.isArray(data) ? data : []);
+            })
+            .catch(err => {
+                console.error("Gagal memuat data:", err);
+                setCompanies([]); // Set jadi array kosong jika error
+            });
     }, []);
 
     useEffect(() => {
         setCurrentPage(1);
     }, [search, category]);
 
-    const filteredData = companies.filter(c => {
+    // Amankan dengan Array.isArray atau default [] agar tidak pernah error .filter
+    const safeCompanies = Array.isArray(companies) ? companies : [];
+    
+    const filteredData = safeCompanies.filter(c => {
         const matchCategory = category === 'Semua' || c.category_name === category;
         const matchSearch = c.name ? c.name.toLowerCase().includes(search.toLowerCase()) : false;
         return matchCategory && matchSearch;
@@ -176,7 +186,7 @@ export default function Home() {
                             </span>
 
                             <button
-                                onClick={handleNext}
+                                onClick= {handleNext}
                                 disabled={currentPage === totalPages}
                                 className={`px-3 py-1.5 rounded text-xs font-bold transition ${
                                     currentPage === totalPages 
@@ -193,9 +203,9 @@ export default function Home() {
             </div>
 
             {/* Komponen ContactUs */}
-<div className="max-w-[1000px] mx-auto">
-    <ContactUs />
-</div>
+            <div className="max-w-[1000px] mx-auto">
+                <ContactUs />
+            </div>
         </div>
     );
 }
